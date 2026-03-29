@@ -14,15 +14,7 @@ export default defineManifest({
     },
     default_popup: 'src/popup/index.html',
   },
-  content_scripts: [{
-    js: ['src/content/main.ts'],
-    matches: ['https://*/*'],
-  }],
-  permissions: [
-    'sidePanel',
-    'contentSettings',
+  host_permissions: [
+    'https://rss.nytimes.com/*',
   ],
-  side_panel: {
-    default_path: 'src/sidepanel/index.html',
-  },
 })

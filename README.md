@@ -1,52 +1,40 @@
-# Svelte + Vite + CRXJS
+# NYTimes RSS Viewer
 
-This template helps you quickly start developing Chrome extensions with Svelte, TypeScript and Vite. It includes the CRXJS Vite plugin for seamless Chrome extension development.
+Browser extension project for browsing NYTimes RSS feeds by section.
 
-## Features
+## Current Scope
 
-- Svelte with component syntax
-- TypeScript support
-- Vite build tool
-- CRXJS Vite plugin integration
-- Chrome extension manifest configuration
+- Popup-first MVP structure
+- Section selection UI
+- NYTimes RSS fetch and XML parsing
 
-## Quick Start
-
-1. Install dependencies:
+## Run
 
 ```bash
-npm install
+bun i
+bun run dev
 ```
 
-2. Start development server:
+## Build
 
 ```bash
-npm run dev
+bun run build
 ```
 
-3. Open Chrome and navigate to `chrome://extensions/`, enable "Developer mode", and load the unpacked extension from the `dist` directory.
+## Key Files
 
-4. Build for production:
+- `src/popup/App.svelte`: Popup main view
+- `src/popup/components/SectionForm.svelte`: Section selector form
+- `src/popup/services/rss.ts`: RSS request and XML parser
+- `src/popup/types/rss.ts`: RSS types and API section enum
+- `src/popup/services/rss-api.yaml`: RSS API specification reference
+- `manifest.config.ts`: Extension manifest configuration
 
-```bash
-npm run build
+## API Spec Notes
+
+The section list and path format are based on `src/popup/services/rss-api.yaml`.
+Request pattern:
+
+```text
+https://rss.nytimes.com/services/xml/rss/nyt/{section}.xml
 ```
-
-## Project Structure
-
-- `src/popup/` - Extension popup UI
-- `src/content/` - Content scripts
-- `manifest.config.ts` - Chrome extension manifest configuration
-
-## Chrome Extension Development Notes
-
-- Use `manifest.config.ts` to configure your extension
-- The CRXJS plugin automatically handles manifest generation
-- Content scripts should be placed in `src/content/`
-- Popup UI should be placed in `src/popup/`
-
-## Documentation
-
-- [Svelte Documentation](https://svelte.dev/)
-- [Vite Documentation](https://vitejs.dev/)
-- [CRXJS Documentation](https://crxjs.dev/vite-plugin)
