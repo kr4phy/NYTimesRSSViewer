@@ -15,11 +15,7 @@ export default defineConfig({
   },
   plugins: [
     tailwindcss(),
-    svelte({
-      compilerOptions: {
-        dev: true,
-      },
-    }),
+    svelte(),
     crx({ manifest }),
     zip({ outDir: 'release', outFileName: `crx-${name}-${version}.zip` }),
   ],

@@ -1,0 +1,55 @@
+name: Release CRX
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build extension (CRXJS + Vite)
+        run: bun run build
+
+      - name: Write CRX private key
+        env:
+          CRX_PRIVATE_KEY: ${{ secrets.CRX_PRIVATE_KEY }}
+        run: |
+          if [ -z "$CRX_PRIVATE_KEY" ]; then
+            echo "Missing required secret: CRX_PRIVATE_KEY"
+            exit 1
+          fi
+          mkdir -p release
+          printf '%s' "$CRX_PRIVATE_KEY" > release/extension.pem
+
+      - name: Package .crx with bunx
+        run: |
+          bunx crx3 \
+            -p release/extension.pem \
+            -o release/nytrssviewer-${{ github.ref_name }}.crx \
+            dist
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          generate_release_notes: true
+          files: |
+            release/*.zip
+            release/*.crx

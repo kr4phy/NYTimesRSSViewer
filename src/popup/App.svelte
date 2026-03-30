@@ -33,16 +33,24 @@
     expandedLink = open ? link : expandedLink === link ? null : expandedLink
   }
 
-  function getVisibleCategories(categories: string[]): string[] {
-    return categories.slice(0, 2)
+  function getVisibleCategories(categories: string[], expanded: boolean): string[] {
+    return expanded ? categories : categories.slice(0, 2)
   }
 
-  function getHiddenCategoryCount(categories: string[]): number {
+  function getHiddenCategoryCount(categories: string[], expanded: boolean): number {
+    if (expanded) {
+      return 0
+    }
+
     return Math.max(categories.length - 2, 0)
   }
 
   function truncateCategory(category: string): string {
     return category.length > 10 ? `${category.slice(0, 10)}...` : category
+  }
+
+  function getCategoryLabel(category: string, expanded: boolean): string {
+    return expanded ? category : truncateCategory(category)
   }
 
   function getShellClasses(): string {
@@ -90,9 +98,9 @@
     })
   }
 
-  function getMetaLine(item: RssItem): string {
-    const parts = [formatDate(item.pubDate), item.creator ?? 'Unknown author']
-    return parts.join(' · ')
+  function getAuthorName(item: RssItem): string {
+    const value = item.creator?.trim()
+    return value && value.length > 0 ? value : 'Unknown author'
   }
 
   async function handleFetch() {
@@ -171,19 +179,20 @@
       {:else}
         <ul class='m-0 h-full min-h-0 list-none overflow-y-auto overflow-x-hidden pr-1 grid gap-2.5 p-0'>
           {#each items as item}
-            <li class={`rounded-md border p-2.5 ${isItemExpanded(item.link) ? 'min-h-[196px]' : 'min-h-[128px]'} ${getSurfaceClasses()}`}>
+            {@const expanded = isItemExpanded(item.link)}
+            <li class={`rounded-md border p-2.5 h-auto ${getSurfaceClasses()}`}>
               <div
                 class='cursor-pointer grid grid-cols-[84px_minmax(0,1fr)] items-start gap-2.5 transition-colors'
-                onclick={() => setItemExpanded(item.link, !isItemExpanded(item.link))}
+                onclick={() => setItemExpanded(item.link, !expanded)}
                 onkeydown={(event) => {
                   if (event.key === 'Enter' || event.key === ' ') {
                     event.preventDefault()
-                    setItemExpanded(item.link, !isItemExpanded(item.link))
+                    setItemExpanded(item.link, !expanded)
                   }
                 }}
                 role='button'
                 tabindex='0'
-                aria-expanded={isItemExpanded(item.link)}
+                aria-expanded={expanded}
               >
                 <div class='h-[84px] w-[84px] shrink-0 overflow-hidden rounded-md'>
                 {#if item.imageUrl}
@@ -194,25 +203,26 @@
               </div>
 
                 <div class='min-w-0 grid gap-1.5'>
-                <h2 class='m-0 text-left text-sm leading-[1.3] wrap-break-word'>{item.title}</h2>
-                <p class={`m-0 text-left text-[11px] truncate whitespace-nowrap ${getSubtleTextClasses()}`}>{getMetaLine(item)}</p>
+                <h2 class='m-0 text-left text-sm leading-[1.3] wrap-break-word whitespace-normal'>{item.title}</h2>
+                <p class={`m-0 text-left text-[11px] ${getSubtleTextClasses()}`}>{formatDate(item.pubDate)}</p>
+                <p class={`m-0 text-left text-[11px] wrap-break-word whitespace-normal ${getSubtleTextClasses()}`}>{getAuthorName(item)}</p>
 
-                {#if isItemExpanded(item.link)}
-                  <p class='m-0 mt-1 text-left text-xs leading-[1.4] wrap-break-word'>
+                {#if expanded}
+                  <p class='m-0 mt-1 text-left text-xs leading-[1.4] wrap-break-word whitespace-normal'>
                     {item.description ?? 'No description available.'}
                   </p>
                 {/if}
 
                 <div class='mt-2 grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2 min-w-0 max-[360px]:grid-cols-1'>
                   <div class='flex flex-wrap gap-1 min-w-0'>
-                      {#if getVisibleCategories(item.categories).length === 0}
+                      {#if getVisibleCategories(item.categories, expanded).length === 0}
                       <span class={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] ${getSoftChipClasses()}`}>Uncategorized</span>
                     {:else}
-                      {#each getVisibleCategories(item.categories) as category}
-                          <span class={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] ${getSoftChipClasses()}`}>{truncateCategory(category)}</span>
+                      {#each getVisibleCategories(item.categories, expanded) as category}
+                          <span class={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] ${getSoftChipClasses()}`}>{getCategoryLabel(category, expanded)}</span>
                       {/each}
-                        {#if getHiddenCategoryCount(item.categories) > 0}
-                          <span class={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] ${getSoftChipClasses()}`}>+{getHiddenCategoryCount(item.categories)}</span>
+                        {#if getHiddenCategoryCount(item.categories, expanded) > 0}
+                          <span class={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] ${getSoftChipClasses()}`}>+{getHiddenCategoryCount(item.categories, expanded)}</span>
                         {/if}
                     {/if}
                   </div>
@@ -224,7 +234,7 @@
                     onclick={(event) => event.stopPropagation()}
                     class={`inline-flex w-fit items-center rounded-md border px-2.5 py-1 text-xs font-medium whitespace-nowrap transition-colors ${getSolidButtonClasses()}`}
                   >
-                    View article
+                    View article &rarr;
                   </a>
                 </div>
               </div>
